@@ -305,10 +305,6 @@
     function closeSettings() {
       document.getElementById('settings-overlay').style.display = 'none';
     }
-    function saveForcedValue() {
-      forcedResult = document.getElementById('forced-input').value;
-      closeSettings();
-    }
 
   // Trigger: 6digits +or- 6digits + 2digits
   const magicReadyPattern = /^(\d{6})([+\-])(\d{6})\+(\d{2})$/;
@@ -329,8 +325,18 @@
   }
 
   function updateDisplay(overrideValue = null) {
-    const raw = overrideValue !== null ? overrideValue : displayValue;
-    displayEl.innerText = formatString(raw);
+    let raw = overrideValue !== null ? overrideValue : displayValue;
+    
+    // 檢查是否為單純負數，並轉換為 (-123) 格式
+    // 邏輯：如果字串是以負號開頭，且後面跟著數字
+    let formatted = raw;
+    if (raw.startsWith('-') && !isNaN(raw.slice(1))) {
+      formatted = "(" + raw + ")";
+    } else {
+      formatted = formatString(raw);
+    }
+    
+    displayEl.innerText = formatted;
     displayEl.scrollLeft = displayEl.scrollWidth;
   }
 
@@ -390,11 +396,14 @@
 
   function handleToggleSign() {
     if (waitingForFinalReveal) return;
-    if (displayValue === "0") return;
-    if (['+', '-', '×', '÷'].some(op => displayValue.endsWith(op))) return;
-
-    if (!isNaN(displayValue)) {
-      displayValue = (parseFloat(displayValue) * -1).toString();
+    
+    // 允許在數字前切換
+    if (displayValue !== "0") {
+      if (displayValue.startsWith('-')) {
+        displayValue = displayValue.slice(1); // 變成正數
+      } else {
+        displayValue = '-' + displayValue;    // 變成負數
+      }
     }
     updateDisplay();
   }
@@ -487,12 +496,7 @@
     updateDisplay();
   }
 
-  function toggleSettings() {
-    document.getElementById('settings-overlay').style.display = 'flex';
-}
-function closeSettings() {
-    document.getElementById('settings-overlay').style.display = 'none';
-}
+
 // 儲存邏輯：只在按下儲存按鈕時才存值
 function saveForcedValue() {
   let inputVal = document.getElementById('forced-input').value;
