@@ -481,11 +481,16 @@
 function closeSettings() {
     document.getElementById('settings-overlay').style.display = 'none';
 }
+// 儲存邏輯：只在按下儲存按鈕時才存值
 function saveForcedValue() {
-    forcedResult = document.getElementById('forced-input').value;
-    alert("已儲存數值: " + forcedResult); // 加入提醒，讓你確認存到了
-    closeSettings();
+  let inputVal = document.getElementById('forced-input').value;
+  if(inputVal.trim() !== "") {
+      forcedResult = inputVal;
+      alert("已設定強制數字: " + forcedResult);
+  }
+  closeSettings();
 }
+
 
 </script>
 
