@@ -11,7 +11,14 @@
   body { display: flex; justify-content: center; align-items: flex-end; }
   .calculator { width: 100%; max-width: 414px; height: 100%; max-height: 900px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-end; position: relative; padding-top: max(140px, env(safe-area-inset-top)); padding-bottom: 5px; background-color: #000000; }
   .status-bar { position: absolute; top: 0; left: 0; width: 100%; box-sizing: border-box; padding-left: 20px; padding-right: 20px; display: flex; justify-content: space-between; align-items: center; padding-top: max(15px, env(safe-area-inset-top)); color: white; z-index: 10; }
-  .icon { width: 28px; height: 28px; fill: white; }
+  /* 時鐘 Icon 的專屬樣式 */
+  .icon { 
+    width: 38px; 
+    height: 38px; 
+    stroke: white; /* 邊框線條白色 */
+    fill: none;    /* 重要：內部透明 */
+    stroke-width: 2.5; 
+  }
   .icon-calc-app { width: 32px; height: 32px; cursor: pointer; }
   .screen-container { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; margin-bottom: 0px; padding-right: 15px; width: 100%; }
   .formula-display { color: #a5a5a5; font-size: 30px; font-weight: 400; white-space: nowrap; height: 40px; line-height: 40px; margin-bottom: -15px; width: 100%; text-align: right; overflow: hidden; opacity: 0; transition: opacity 0.3s; }
@@ -107,7 +114,15 @@
 
 <div class="calculator">
   <div class="status-bar">
-    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+  <!-- 將此 SVG 替換你原本的時鐘圖示 SVG -->
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 外圈 -->
+    <circle cx="12" cy="12" r="9"/>
+    <!-- 時針 -->
+    <line x1="12" y1="12" x2="12" y2="7"/>
+    <!-- 分針 -->
+    <line x1="12" y1="12" x2="16" y2="12"/>
+  </svg>
     <svg class="icon-calc-app" onclick="document.getElementById('settings-panel').style.display='flex'" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
       <rect x="0" y="0" width="100" height="130" rx="15" ry="15" fill="white" />
       <rect x="15" y="15" width="70" height="35" rx="8" ry="8" fill="black" />
