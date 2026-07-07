@@ -190,27 +190,21 @@
     document.getElementById('settings-panel').style.display = 'none';
   }
 
- function appendNumber(num) {
+  function appendNumber(num) {
     if (waitingForFinalReveal) return;
-
-    if (isResultState) {
-        displayValue = num;
-        isResultState = false;
-        formulaEl.innerText = "";
-        formulaEl.classList.remove('visible');
-        resetDisplayStyles();
-    } else if (displayValue === "0") {
-        displayValue = num;
-    } else {
-        // 魔術偵測邏輯...
-        displayValue += num;
+    if (isResultState) { displayValue = num; isResultState = false; formulaEl.innerText = ""; formulaEl.classList.remove('visible'); resetDisplayStyles(); }
+    else if (displayValue === "0") displayValue = num;
+    else {
+      // 根據動態設定的位數進行偵測
+      let reg = new RegExp(`^(\\d{${digitCount}})([+\\-])(\\d{${digitCount}})\\+(\\d{2})$`);
+      const match = displayValue.match(reg);
+      if (match) { triggerMagicPhase1(parseInt(match[1]), parseInt(match[3]), match[2]); return; }
+      displayValue += num;
     }
-
-    // 【新增】只要有輸入數字，AC 變 C
+        // 【新增】只要有輸入數字，AC 變 C
     clearBtn.innerText = "C"; 
-    
     updateDisplay();
-}
+  }
 
   // 其他邏輯保持原狀...
   function triggerMagicPhase1(num1, num2, op) {
@@ -244,19 +238,8 @@
       displayEl.style.fontSize = "70px";
     }
   }
-  function handleClear() {
-    displayValue = "0";
-    isResultState = false;
-    waitingForFinalReveal = false;
-    formulaEl.innerText = "";
-    formulaEl.classList.remove('visible');
-    resetDisplayStyles();
-    
-    // 【新增】重置歸零時，C 變回 AC
-    clearBtn.innerText = "AC";
-    
-    updateDisplay();
-}
+  function handleClear() { displayValue = "0"; isResultState = false; waitingForFinalReveal = false; formulaEl.innerText = "";     // 【新增】重置歸零時，C 變回 AC
+    clearBtn.innerText = "AC"; updateDisplay(); }
   function handleBackspace() { displayValue = displayValue.length > 1 ? displayValue.slice(0, -1) : "0"; updateDisplay(); }
   function handleOperator(op) { displayValue += op; updateDisplay(); }
   function handleToggleSign() { displayValue = (parseFloat(displayValue)*-1).toString(); updateDisplay(); }
