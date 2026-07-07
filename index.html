@@ -17,7 +17,6 @@
     height: 38px; 
     stroke: white; /* 邊框線條白色 */
     fill: none;    /* 重要：內部透明 */
-    stroke-width: 3.5; 
   }
   .icon-calc-app { width: 32px; height: 32px; cursor: pointer; }
   .screen-container { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; margin-bottom: 0px; padding-right: 15px; width: 100%; }
@@ -115,13 +114,13 @@
 <div class="calculator">
   <div class="status-bar">
   <!-- 將此 SVG 替換你原本的時鐘圖示 SVG -->
-  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-    <!-- 外圈 -->
-    <circle cx="12" cy="12" r="9"/>
-    <!-- 時針 -->
-    <line x1="12" y1="12" x2="12" y2="7"/>
-    <!-- 分針 -->
-    <line x1="12" y1="12" x2="16" y2="12"/>
+  <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 外圈：設定較粗的 stroke-width="2.5" -->
+    <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2.5" stroke-linecap="round" />
+    
+    <!-- 指針：設定較細的 stroke-width="1.2" -->
+    <line x1="12" y1="12" x2="12" y2="7" stroke="white" stroke-width="1.2" stroke-linecap="round" />
+    <line x1="12" y1="12" x2="16" y2="12" stroke="white" stroke-width="1.2" stroke-linecap="round" />
   </svg>
     <svg class="icon-calc-app" onclick="document.getElementById('settings-panel').style.display='flex'" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
       <rect x="0" y="0" width="100" height="130" rx="15" ry="15" fill="white" />
