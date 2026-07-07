@@ -279,14 +279,11 @@
 
 <!-- 【新增】隱藏設定面板 -->
 <!-- 設定面板 -->
-<div id="settings-overlay">
-  <h2 style="color:white">強制數字設定</h2>
-  <input type="text" id="forced-input" placeholder="請在此輸入強制數字">
-  <button onclick="saveForcedValue()" style="padding:15px 40px; border-radius:20px; border:none; background:#ff9f0a; color:white; font background:white; z-index:9999; flex-direction:column; justify-content:center; align-items:center; gap:20px;">
-  <h2 style="color:black;">設定強制數字</h2>
-  <input type="text" id="forced-input" placeholder="請輸入數字" style="width:80%; padding:20px; font-size:24px; border-radius:10px; border:2px solid #ccc; background:#f0f0f0; color:black; text-align:center;">
-  <button onclick="saveForcedValue()" style="padding:15px 40px; font-size:20px; border-radius:20px; border:none; background:#ff9f0a; color:white; cursor:pointer;">儲存設定</button>
-  <button onclick="closeSettings()" style="background:none; border:none; color:black; font-size:16px; text-decoration:underline; cursor:pointer;">取消</button>
+<div id="settings-overlay" onclick="if(event.target.id==='settings-overlay') closeSettings()">
+  <h2 style="color:white;">強制結果設定</h2>
+  <!-- 輸入框明確設定 -->
+  <input type="text" id="forced-input" placeholder="請輸入要強制的數字" onclick="event.stopPropagation()">
+  <button class="action-btn" onclick="saveForcedValue()">儲存並離開</button>
 </div>
 
 <script>
