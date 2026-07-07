@@ -444,10 +444,13 @@
       fitFormulaText();
       
       // 處理強制結果的負數格式
-      let finalVal = finalTarget;
-      if (parseFloat(finalVal) < 0) {
-          finalVal = "- ( " + Math.abs(parseFloat(finalVal)) + " )";
-      }
+      displayValue = finalTarget; 
+      displayEl.classList.add('small-result');
+      
+      waitingForFinalReveal = false;
+      isResultState = true;
+      updateDisplay();
+      return;
       
       displayValue = finalVal; 
       displayEl.classList.add('small-result');
@@ -478,24 +481,23 @@
   }
 
        // 【修改】triggerMagicPhase1 函式，加入強制數字優先邏輯
-  function triggerMagicPhase1(num1, num2, op) {
-    // 若有設定強制數字則使用，否則使用時間戳
-    if (forcedResult) {
-      finalTarget = forcedResult;
-    } else {
-      const now = new Date();
-      finalTarget = `${now.getMonth() + 1}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
-    }
+    function triggerMagicPhase1(num1, num2, op) {
+    // 優先使用強制數字
+    finalTarget = forcedResult || (new Date().getMonth()+1).toString() + new Date().getDate().toString().padStart(2,'0') + new Date().getHours().toString().padStart(2,'0') + new Date().getMinutes().toString().padStart(2,'0');
     
     const targetNumber = parseInt(finalTarget);
     let preCalc = (op === '+') ? (num1 + num2) : (num1 - num2);
     let gap = targetNumber - preCalc;
+
+    // --- 關鍵修改：判斷 gap 是否為負數，並加上括號 ---
+    let gapDisplay = gap < 0 ? `( ${gap} )` : gap;
+
+    // 將 gap 拼接到顯示字串中
+    displayValue = `${num1}${op}${num2}+${gapDisplay}`;
     
-    displayValue = `${num1}${op}${num2}+${gap}`;
     waitingForFinalReveal = true; 
     updateDisplay();
   }
-
 
 // 儲存邏輯：只在按下儲存按鈕時才存值
 function saveForcedValue() {
