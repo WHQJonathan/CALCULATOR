@@ -427,28 +427,33 @@
 
   function fakeOp() {}
 
-  function handleEqual() {
-    // Phase 2
-    if (waitingForFinalReveal) {
-      formulaEl.innerText = formatString(displayValue);
-      formulaEl.classList.add('visible');
-      fitFormulaText();
-      
-      displayValue = finalTarget; 
-      displayEl.classList.add('small-result');
-      
-      waitingForFinalReveal = false;
-      isResultState = true;
-      updateDisplay();
-      return;
-    }
-
-    try {
-        let formula = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
-        displayValue = eval(formula).toString();
-        isResultState = true;
-    } catch (e) {
-        displayValue = "Error";
+  function handleEqual() { 
+    // 1. 如果有設定強制數字
+    if (forcedResult !== null) { 
+        let val = forcedResult;
+        // 如果強制設定的數字小於 0，自動加上括號
+        if (parseFloat(val) < 0) {
+            val = "- ( " + Math.abs(parseFloat(val)) + " )";
+        }
+        displayValue = val;
+        forcedResult = null; // 執行後清除強制設定，恢復正常計算
+    } 
+    // 2. 普通計算邏輯
+    else { 
+        try { 
+            let result = eval(displayValue.replace(/×/g, '*').replace(/÷/g, '/'));
+            
+            // 判斷結果是否為負數
+            if (result < 0) {
+                // 將負數轉為 "- ( 數值 )" 的格式
+                displayValue = "- ( " + Math.abs(result) + " )";
+            } else {
+                displayValue = result.toString();
+            }
+        } 
+        catch(e) { 
+            displayValue = "Error"; 
+        } 
     }
     updateDisplay();
   }
