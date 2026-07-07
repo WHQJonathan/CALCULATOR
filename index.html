@@ -16,8 +16,22 @@
   .screen-container { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; margin-bottom: 0px; padding-right: 15px; width: 100%; }
   .formula-display { color: #a5a5a5; font-size: 30px; font-weight: 400; white-space: nowrap; height: 40px; line-height: 40px; margin-bottom: -15px; width: 100%; text-align: right; overflow: hidden; opacity: 0; transition: opacity 0.3s; }
   .formula-display.visible { opacity: 1; }
-  .display { color: #fff; font-size: 70px; text-align: right; font-weight: 400; white-space: nowrap; overflow-x: auto; overflow-y: hidden; width: 100%; height: 80px; line-height: 80px; scrollbar-width: none; transition: font-size 0.3s; }
-  .display::-webkit-scrollbar { display: none; }
+  .display {
+      color: #fff;
+      font-size: 70px; /* 預設大小 */
+      text-align: right;
+      width: 100%;
+      height: 80px;
+      line-height: 80px;
+      white-space: nowrap;
+      /* 這裡不需要 overflow-x: auto 了，我們改用 JS 縮放 */
+      transition: font-size 0.2s ease-out; 
+      /* 確保數字靠右 */
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+  .display::-webkit-scrollbar { display: none; }  .display::-webkit-scrollbar { display: none; }
   .display.small-result { font-size: 55px; }
   .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
   button { width: 100%; aspect-ratio: 1; border-radius: 50%; border: none; font-size: 34px; font-weight: 400; color: #fff; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; transition: filter 0.2s; margin: 0 auto; display: flex; justify-content: center; align-items: center; padding: 0; }
@@ -104,7 +118,28 @@
   }
 
   // 為了節省空間，其他函式如 updateDisplay, handleEqual 等請沿用你原本的
-  function updateDisplay(overrideValue = null) { displayEl.innerText = (overrideValue !== null ? overrideValue : displayValue).replace(/\d+/g, n => parseInt(n).toLocaleString()); }
+  function updateDisplay(overrideValue = null) {
+    let raw = overrideValue !== null ? overrideValue : displayValue;
+    
+    // 1. 格式化數字
+    let formatted = raw.replace(/\d+/g, n => parseInt(n).toLocaleString());
+    if (raw.startsWith('-') && !isNaN(raw.slice(1))) {
+      formatted = "(" + raw + ")";
+    }
+    
+    displayEl.innerText = formatted;
+
+    // 2. 動態字體縮小邏輯
+    // 預設 70px，超過 7 個數字開始縮小，直到 12 個數字
+    let length = formatted.length;
+    if (length > 7) {
+      // 計算縮放比例：若 length=12，fontSize 大約為 40px
+      let newSize = Math.max(40, 70 - (length - 7) * 6);
+      displayEl.style.fontSize = newSize + "px";
+    } else {
+      displayEl.style.fontSize = "70px";
+    }
+  }
   function handleClear() { displayValue = "0"; isResultState = false; waitingForFinalReveal = false; formulaEl.innerText = ""; updateDisplay(); }
   function handleBackspace() { displayValue = displayValue.length > 1 ? displayValue.slice(0, -1) : "0"; updateDisplay(); }
   function handleOperator(op) { displayValue += op; updateDisplay(); }
