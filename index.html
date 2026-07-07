@@ -280,11 +280,11 @@
 <!-- 【新增】隱藏設定面板 -->
 <!-- 設定面板 -->
 <div id="settings-overlay" onclick="if(event.target.id==='settings-overlay') closeSettings()">
-  <h2 style="color:white;">強制結果設定</h2>
-  <!-- 輸入框明確設定 -->
-  <input type="text" id="forced-input" placeholder="請輸入要強制的數字" onclick="event.stopPropagation()">
-  <button class="action-btn" onclick="saveForcedValue()">儲存並離開</button>
-</div>
+    <h2 style="color:white">魔術設定</h2>
+    <input type="text" id="forced-input" class="setting-input" placeholder="輸入強制結果數字">
+    <input type="number" id="digit-input" class="setting-input" value="6" placeholder="輸入位數 (預設6)">
+    <button onclick="saveForcedValue()" style="padding:15px 40px; border-radius:20px; border:none; background:#ff9f0a; color:white; font-size:18px;">儲存設定</button>
+  </div>
 
 <script>
   let displayValue = "0"; 
@@ -499,16 +499,15 @@
     updateDisplay();
   }
 
-// 儲存邏輯：只在按下儲存按鈕時才存值
-function saveForcedValue() {
-  let inputVal = document.getElementById('forced-input').value;
-  if(inputVal.trim() !== "") {
-      forcedResult = inputVal;
-      alert("已設定強制數字: " + forcedResult);
+  function saveForcedValue() {
+    forcedResult = document.getElementById('forced-input').value;
+    digitCount = parseInt(document.getElementById('digit-input').value) || 6;
+    // 動態更新正則表達式，例如設定位數為 5，則 regex 為 ^(\d{5})([+\-])(\d{5})\+(\d{2})$
+    magicReadyPattern = new RegExp(`^(\\d{${digitCount}})([+\\-])(\\d{${digitCount}})\\+(\\d{2})$`);
+    closeSettings();
   }
-  closeSettings();
-}
 
+ 
 
 </script>
 
