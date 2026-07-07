@@ -240,7 +240,26 @@
   }
   function handleClear() { displayValue = "0"; isResultState = false; waitingForFinalReveal = false; formulaEl.innerText = "";     // 【新增】重置歸零時，C 變回 AC
     clearBtn.innerText = "AC"; updateDisplay(); }
-  function handleBackspace() { displayValue = displayValue.length > 1 ? displayValue.slice(0, -1) : "0"; updateDisplay(); }
+  function handleBackspace() {
+    if (waitingForFinalReveal) return;
+
+    if (isResultState) {
+      handleClear();
+      return;
+    }
+    
+    // 如果長度大於 1，刪除最後一個字
+    if (displayValue.length > 1) {
+      displayValue = displayValue.slice(0, -1);
+    } else {
+      // 刪到剩最後一個字，歸零
+      displayValue = "0";
+      // 【新增】當數值歸零時，將按鈕文字切換回 AC
+      document.getElementById('btn-clear').innerText = "AC";
+    }
+    
+    updateDisplay();
+  }
   function handleOperator(op) { displayValue += op; updateDisplay(); }
   function handleToggleSign() { displayValue = (parseFloat(displayValue)*-1).toString(); updateDisplay(); }
   function handleEqual() { 
