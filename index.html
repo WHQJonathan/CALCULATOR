@@ -136,8 +136,24 @@
     
     <!-- % 按鈕：加入 btn-larger -->
     <button class="btn-grey btn-larger" onclick="fakeOp()">%</button>
-    <button class="btn-orange btn-larger" onclick="handleOperator('÷')">÷</button>
-    <button class="btn-dark-grey" onclick="appendNumber('7')">7</button><button class="btn-dark-grey" onclick="appendNumber('8')">8</button><button class="btn-dark-grey" onclick="appendNumber('9')">9</button><button class="btn-orange" onclick="handleOperator('×')">×</button>
+    <!-- 除號 (÷) - 放大並加粗 -->
+<!-- 除號 (÷) - 中間橫線加粗，上下兩點調瘦 -->
+<button class="btn-orange" onclick="handleOperator('÷')">
+  <svg viewBox="0 0 24 24">
+    <!-- 中間橫線保持粗度 -->
+    <line x1="4" y1="12" x2="20" y2="12" stroke-width="4" stroke-linecap="round"/>
+    <!-- 上下的點調瘦：將半徑 r 從 2.5 縮小為 1.8 -->
+    <circle cx="12" cy="4" r="0.2" fill="white"/>
+    <circle cx="12" cy="20" r="0.2" fill="white"/>
+  </svg>
+</button>
+    <button class="btn-dark-grey" onclick="appendNumber('7')">7</button><button class="btn-dark-grey" onclick="appendNumber('8')">8</button><button class="btn-dark-grey" onclick="appendNumber('9')">9</button><!-- 乘號 (×) - 放大並加粗 -->
+<button class="btn-orange" onclick="handleOperator('×')">
+  <svg viewBox="0 0 24 24">
+    <line x1="6" y1="6" x2="18" y2="18"/>
+    <line x1="18" y1="6" x2="6" y2="18"/>
+  </svg>
+</button>
     <button class="btn-dark-grey" onclick="appendNumber('4')">4</button><button class="btn-dark-grey" onclick="appendNumber('5')">5</button><button class="btn-dark-grey" onclick="appendNumber('6')">6</button><!-- 減號 -->
 <!-- 減號 (拉長並加粗) -->
 <button class="btn-orange" onclick="handleOperator('-')">
@@ -153,8 +169,13 @@
   </svg>
 </button>
 </button>
-    <button class="btn-dark-grey" onclick="handleToggleSign()">+/-</button><button class="btn-dark-grey" onclick="appendNumber('0')">0</button><button class="btn-dark-grey" onclick="appendNumber('.')">.</button><button class="btn-orange" onclick="handleEqual()">=</button>
-  </div>
+    <button class="btn-dark-grey" onclick="handleToggleSign()">+/-</button><button class="btn-dark-grey" onclick="appendNumber('0')">0</button><button class="btn-dark-grey" onclick="appendNumber('.')">.</button><!-- 等號 (=) - 使用兩條平行線，與其他運算符號粗細與寬度一致 -->
+<button class="btn-orange" onclick="handleEqual()">
+  <svg viewBox="0 0 24 24">
+    <line x1="4" y1="7" x2="20" y2="7" stroke-width="4" stroke-linecap="round"/>
+    <line x1="4" y1="17" x2="20" y2="17" stroke-width="4" stroke-linecap="round"/>
+  </svg>
+</button>
 </div>
 
 <script>
