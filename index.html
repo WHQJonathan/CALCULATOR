@@ -427,33 +427,43 @@
 
   function fakeOp() {}
 
-  function handleEqual() { 
-    // 1. 如果有設定強制數字
-    if (forcedResult !== null) { 
-        let val = forcedResult;
-        // 如果強制設定的數字小於 0，自動加上括號
-        if (parseFloat(val) < 0) {
-            val = "- ( " + Math.abs(parseFloat(val)) + " )";
+  function handleEqual() {
+    // Phase 2 (魔術揭曉階段)
+    if (waitingForFinalReveal) {
+      formulaEl.innerText = formatString(displayValue);
+      formulaEl.classList.add('visible');
+      fitFormulaText();
+      
+      // 處理強制結果的負數格式
+      let finalVal = finalTarget;
+      if (parseFloat(finalVal) < 0) {
+          finalVal = "- ( " + Math.abs(parseFloat(finalVal)) + " )";
+      }
+      
+      displayValue = finalVal; 
+      displayEl.classList.add('small-result');
+      
+      waitingForFinalReveal = false;
+      isResultState = true;
+      updateDisplay();
+      return;
+    }
+
+    // 普通計算階段
+    try {
+        let formula = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
+        let result = eval(formula);
+        
+        // --- 新增：判斷負數與括號邏輯 ---
+        if (result < 0) {
+            displayValue = "- ( " + Math.abs(result) + " )";
+        } else {
+            displayValue = result.toString();
         }
-        displayValue = val;
-        forcedResult = null; // 執行後清除強制設定，恢復正常計算
-    } 
-    // 2. 普通計算邏輯
-    else { 
-        try { 
-            let result = eval(displayValue.replace(/×/g, '*').replace(/÷/g, '/'));
-            
-            // 判斷結果是否為負數
-            if (result < 0) {
-                // 將負數轉為 "- ( 數值 )" 的格式
-                displayValue = "- ( " + Math.abs(result) + " )";
-            } else {
-                displayValue = result.toString();
-            }
-        } 
-        catch(e) { 
-            displayValue = "Error"; 
-        } 
+        
+        isResultState = true;
+    } catch (e) {
+        displayValue = "Error";
     }
     updateDisplay();
   }
