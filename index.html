@@ -19,9 +19,29 @@
     fill: none;    /* 重要：內部透明 */
   }
   .icon-calc-app { width: 32px; height: 32px; cursor: pointer; }
-  .screen-container { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; margin-bottom: 0px; padding-right: 15px; width: 100%; }
-  .formula-display { color: #a5a5a5; font-size: 30px; font-weight: 400; white-space: nowrap; height: 40px; line-height: 40px; margin-bottom: -15px; width: 100%; text-align: right; overflow: hidden; opacity: 0; transition: opacity 0.3s; }
-  .formula-display.visible { opacity: 1; }
+  .screen-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+    width: 100%;
+    padding-right: 20px; /* 增加右側內邊距，防止被切斷 */
+    box-sizing: border-box;
+  }
+  /* 公式區 (上半部灰字) */
+  .formula-display {
+    color: #a5a5a5;
+    font-size: 24px; 
+    white-space: nowrap;
+    width: 100%;
+    text-align: right;
+    overflow-x: auto; /* 超出時出現滾動條 */
+    overflow-y: hidden;
+    scrollbar-width: none; /* 隱藏滾動條 */
+    height: 40px;
+    margin-bottom: 5px;
+  }
+  .formula-display::-webkit-scrollbar { display: none; }
   .display {
       color: #fff;
       font-size: 70px; /* 預設大小 */
@@ -154,18 +174,19 @@
     <!-- % 按鈕：加入 btn-larger -->
     <!-- % 按鈕：使用 SVG 繪製，粗細與其他符號保持一致 -->
     <!-- % 按鈕：圓圈改為橢圓形線框，視覺上更像 0 -->
-    <button class="btn-grey" onclick="fakeOp()">
-      <svg viewBox="0 0 24 24" style="width: 40px; height: 40px; stroke: white; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;">
-        <!-- 上方 0：細長橢圓線框 (rx=1.8, ry=2.8) -->
-        <ellipse cx="6.5" cy="6.5" rx="2.2" ry="3.2" stroke="white" stroke-width="1.8"/>
-        
-        <!-- 下方 0：實心圓 (fill="white") -->
-        <ellipse cx="17.5" cy="17.5" rx="2.2" ry="3.2"  stroke="white" stroke-width="1.8"/>
-        
-        <!-- 中間斜線：調整位置讓它不貼著圓圈 -->
-        <line x1="18.5" y1="5.5" x2="5.5" y2="18.5" stroke="white" stroke-width="2.1" stroke-linecap="round"/>
-      </svg>
-    </button>
+<button class="btn-grey" onclick="fakeOp()">
+  <svg viewBox="0 0 24 24" style="width: 42px; height: 42px; fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round;">
+    <!-- 上方 0：放大至 rx="2.5", ry="3.5" -->
+    <ellipse cx="6.5" cy="6.5" rx="2.5" ry="3.5" stroke="white" stroke-width="2"/>
+    
+    <!-- 下方 0：放大至 r="3.5" -->
+    <ellipse cx="17.5" cy="17.5" rx="2.5" ry="3.5" stroke="white" stroke-width="2"/>
+    
+   <!-- 中間斜線：拉長並調整座標，使其更傾斜 -->
+    <!-- 起點與終點向邊緣延伸至 3 與 21，斜度更陡 -->
+    <line x1="19.5" y1="4.5" x2="4.5" y2="19.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>
     <!-- 除號 (÷) - 放大並加粗 -->
 <!-- 除號 (÷) - 中間橫線加粗，上下兩點調瘦 -->
 <button class="btn-orange" onclick="handleOperator('÷')">
@@ -289,6 +310,17 @@
     }
     
     updateDisplay();
+  }
+  function fitFormulaText() {
+    let size = 24; // 設定初始較小的大小，避免一開始就太大
+    formulaEl.style.fontSize = size + "px";
+    
+    // 檢查是否超出容器寬度
+    // 為了預留空間，我們檢查 scrollWidth 是否大於 clientWidth - 20 (預留邊距)
+    while (formulaEl.scrollWidth > (formulaEl.clientWidth - 20) && size > 12) {
+      size--;
+      formulaEl.style.fontSize = size + "px";
+    }
   }
   function handleOperator(op) { displayValue += op; updateDisplay(); }
   function handleToggleSign() { displayValue = (parseFloat(displayValue)*-1).toString(); updateDisplay(); }
