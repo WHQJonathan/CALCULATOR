@@ -389,12 +389,12 @@
     
     finalTarget = target.toString();
     // 移除剛輸入的 3 個數字，計算真正的差距
-    let baseFormula = displayValue.slice(0, -4).replace(/×/g, '*').replace(/÷/g, '/');
+    let baseFormula = displayValue.slice(0, -3).replace(/×/g, '*').replace(/÷/g, '/');
     let currentSum = eval(baseFormula + "0"); // +0 避免結尾是加號出錯
     let gap = target - currentSum;
     
     // 修正 displayValue：將最後 3 位替換成真正的湊數
-    displayValue = displayValue.slice(0, -4) + gap;
+    displayValue = displayValue.slice(0, -3) + gap;
     
     magicInputMode = false;
     waitingForFinalReveal = true;
@@ -453,7 +453,7 @@
       } else {
         displayValue = "0";
         clearBtn.innerText = "AC";
-        handleClear()
+        handleClear();
       }
     }
 
