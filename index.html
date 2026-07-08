@@ -50,12 +50,11 @@
       height: 80px;
       line-height: 80px;
       white-space: nowrap;
-      /* 這裡不需要 overflow-x: auto 了，我們改用 JS 縮放 */
-      transition: font-size 0.2s ease-out; 
+      overflow-x: auto; /* 允許往左滑動查看前面的數字 */
+      scrollbar-width: none; /* 隱藏捲軸 */
+      transition: font-size 0.2s ease-out;
       /* 確保數字靠右 */
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
+
     }
   .display::-webkit-scrollbar { display: none; }  .display::-webkit-scrollbar { display: none; }
   .display.small-result { font-size: 55px; }
@@ -281,13 +280,15 @@
     // 2. 動態字體縮小邏輯
     // 預設 70px，超過 7 個數字開始縮小，直到 12 個數字
     let length = formatted.length;
-    if (length > 7) {
+    if (length > 10) {
       // 計算縮放比例：若 length=12，fontSize 大約為 40px
-      let newSize = Math.max(40, 70 - (length - 7) * 6);
+      let newSize = Math.max(60, 70 - (length - 7) * 6);
       displayEl.style.fontSize = newSize + "px";
     } else {
       displayEl.style.fontSize = "70px";
     }
+      // 當字數超過 12 時，雖然不再縮小，但啟用滾動，並自動滾到最右邊顯示最新輸入
+      displayEl.scrollLeft = displayEl.scrollWidth;
   }
   function handleClear() { displayValue = "0"; isResultState = false; waitingForFinalReveal = false; formulaEl.innerText = "";     // 【新增】重置歸零時，C 變回 AC
     clearBtn.innerText = "AC"; updateDisplay(); }
@@ -312,20 +313,24 @@
     updateDisplay();
   }
   function fitFormulaText() {
-    let size = 24; // 設定初始較小的大小，避免一開始就太大
-    formulaEl.style.fontSize = size + "px";
-    
-    // 檢查是否超出容器寬度
-    // 為了預留空間，我們檢查 scrollWidth 是否大於 clientWidth - 20 (預留邊距)
-    while (formulaEl.scrollWidth > (formulaEl.clientWidth - 20) && size > 12) {
-      size--;
-      formulaEl.style.fontSize = size + "px";
-    }
+    formulaEl.style.fontSize = "26px"; // 固定一個清晰的字體
+    formulaEl.style.whiteSpace = "nowrap";
+    formulaEl.style.overflowX = "auto"; // 超過寬度時允許拖動查看
+    formulaEl.style.display = "block";
+    formulaEl.scrollLeft = formulaEl.scrollWidth; // 強制滾動到最右邊
   }
   function handleOperator(op) { displayValue += op; updateDisplay(); }
   function handleToggleSign() { displayValue = (parseFloat(displayValue)*-1).toString(); updateDisplay(); }
   function handleEqual() { 
-      if(waitingForFinalReveal) { formulaEl.innerText = displayValue; formulaEl.classList.add('visible'); displayValue = finalTarget; waitingForFinalReveal = false; isResultState = true; updateDisplay(); }
+      if(waitingForFinalReveal) 
+      { formulaEl.innerText = displayValue; 
+        formulaEl.classList.add('visible'); 
+        // 這裡強制讓它塞滿寬度，不進行縮小
+        fitFormulaText(); 
+        displayValue = finalTarget; 
+        waitingForFinalReveal = false; 
+        isResultState = true; 
+        updateDisplay(); }
       else try { displayValue = eval(displayValue.replace(/×/g,'*').replace(/÷/g,'/')).toString(); isResultState = true; updateDisplay(); } catch(e) { displayValue = "Error"; updateDisplay(); }
   }
   function fakeOp() {}
