@@ -319,12 +319,13 @@
 
   function updateDisplay(overrideValue = null) {
     let raw = overrideValue !== null ? overrideValue : displayValue;
+    
+    // 1. 先處理千分位逗號 (只對數字部分)
     let formatted = raw.replace(/\d+/g, n => parseInt(n).toLocaleString());
     
-    // 括號美化邏輯：檢查是否包含 +(-...
-    if (raw.includes('+(-') || raw.startsWith('-')) {
-        formatted = formatted.replace(/-(\d+,?\d*)/g, "($1)");
-    }
+    // 2. 修正雙重括號：統一處理所有負數顯示，將 "-數字" 轉為 "(-數字)"
+    // 使用正則表達式，偵測負號後面跟著數字的情況
+    formatted = formatted.replace(/-(\d+[,.\d]*)/g, "(-$1)");
     
     displayEl.innerText = formatted;
 
@@ -338,6 +339,7 @@
     }
     displayEl.scrollLeft = displayEl.scrollWidth;
   }
+
 
   function appendNumber(num) {
     if (waitingForFinalReveal) return;
