@@ -340,7 +340,6 @@
     displayEl.scrollLeft = displayEl.scrollWidth;
   }
 
-
   function appendNumber(num) {
     if (waitingForFinalReveal) return;
     if (isResultState) handleClear();
@@ -355,7 +354,6 @@
 
     if (op === '+') {
       currentPlusCount++;
-      // 當點擊第 N 個加號時
       if (currentPlusCount === peopleCount) {
         triggerMagicPhase();
         return;
@@ -384,8 +382,9 @@
     let currentSum = eval(currentExp);
     let gap = target - currentSum;
     
-    // 補上差距數字，自動處理負數括號
-    displayValue += gap < 0 ? `+(-${Math.abs(gap)})` : `+${gap}`;
+    // 重要修正：此處直接補上負號數字，不要手動加括號，由 updateDisplay 統一處理顯示
+    displayValue += (gap < 0) ? `+${gap}` : `+${gap}`;
+    
     waitingForFinalReveal = true;
     updateDisplay();
   }
@@ -401,7 +400,8 @@
       try {
         let formula = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
         let res = eval(formula);
-        displayValue = res < 0 ? `- ( ${Math.abs(res)} )` : res.toString();
+        // 結果顯示也遵循負數括號邏輯
+        displayValue = res.toString();
         isResultState = true;
       } catch(e) { displayValue = "Error"; }
     }
@@ -413,16 +413,12 @@
     formulaEl.innerText = ""; formulaEl.classList.remove('visible'); clearBtn.innerText = "AC"; updateDisplay();
   }
 
-  /* --- 關鍵修正：修正退格鍵邏輯 --- */
   function handleBackspace() {
-    // 如果目前是「顯示結果」狀態，按退格鍵先隱藏公式，並解除結果狀態
     if (isResultState) {
       isResultState = false;
       formulaEl.innerText = "";
       formulaEl.classList.remove('visible');
-      // 這裡不直接 Return，而是讓它繼續往下走去刪除結果數字的一個字
     }
-
     if (displayValue.length > 1) {
       displayValue = displayValue.slice(0, -1);
     } else {
