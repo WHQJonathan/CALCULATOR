@@ -193,7 +193,7 @@
   </div>
   <div class="setting-item">
     <label>每組輸入幾位數 (例如 5 位):</label>
-    <input type="number" id="digit-count" value="5">
+    <input type="number" id="digit-count" value="6">
   </div>
   <button onclick="saveSettings()" style="padding:15px 50px; background:#ff9f0a; color:white; border:none; border-radius:30px; font-size:18px; font-weight:bold;">儲存並開啟魔術</button>
 </div>
@@ -394,7 +394,7 @@
     let gap = target - currentSum;
     
     // 修正 displayValue：將最後 3 位替換成真正的湊數
-    displayValue = displayValue.slice(0, -3) + gap;
+    displayValue = displayValue.slice(0, 4) + gap;
     
     magicInputMode = false;
     waitingForFinalReveal = true;
