@@ -305,66 +305,67 @@
 
 <script>
   let displayValue = "0", isResultState = false, waitingForFinalReveal = false, finalTarget = "";
-  let forcedResult = null, peopleCount = 2, digitCountPerNum = 5, currentPlusCount = 0;
+  let forcedResult = null, peopleCount = 2, currentPlusCount = 0;
+  let magicInputMode = false, magicDigitBuffer = ""; // 新增：魔術輸入緩衝
   
   const displayEl = document.getElementById('display'), formulaEl = document.getElementById('formula'), clearBtn = document.getElementById('btn-clear');
 
   function saveSettings() {
     forcedResult = document.getElementById('forced-input').value;
     peopleCount = parseInt(document.getElementById('people-count').value) || 2;
-    digitCountPerNum = parseInt(document.getElementById('digit-count').value) || 5;
     handleClear();
     document.getElementById('settings-panel').style.display = 'none';
   }
 
-  // --- 核心修正：顯示邏輯 ---
   function updateDisplay(overrideValue = null) {
     let raw = overrideValue !== null ? overrideValue : displayValue;
-    
-    // 移除所有可能存在的舊括號，確保變數乾淨
     let cleanRaw = raw.toString().replace(/[()]/g, '');
-
-    // 1. 處理千分位
     let formatted = cleanRaw.replace(/\d+/g, n => parseInt(n).toLocaleString());
-    
-    // 2. 處理括號：偵測 運算符號 後面跟著 負號 的情況
-    // 例如：1,000+-500 -> 1,000+(-500)
     formatted = formatted.replace(/([+\-×÷])(-[\d,.]+)/g, "$1($2)");
-    
-    // 3. 如果整個字串開頭就是負數 (例如切換正負號時)，也補上括號
-    if (formatted.startsWith('-')) {
-        formatted = "(" + formatted + ")";
-    }
+    if (formatted.startsWith('-')) formatted = "(" + formatted + ")";
     
     displayEl.innerText = formatted;
 
-    // 字體縮放
     let len = formatted.length;
-    if (len > 10) {
-      let newSize = Math.max(35, 70 - (len - 8) * 5);
-      displayEl.style.fontSize = newSize + "px";
-    } else {
-      displayEl.style.fontSize = "70px";
-    }
+    if (len > 10) { displayEl.style.fontSize = Math.max(35, 70 - (len - 8) * 5) + "px"; }
+    else { displayEl.style.fontSize = "70px"; }
     displayEl.scrollLeft = displayEl.scrollWidth;
   }
 
   function appendNumber(num) {
     if (waitingForFinalReveal) return;
     if (isResultState) handleClear();
+
+    // 魔術邏輯：如果進入了補位輸入模式
+    if (magicInputMode) {
+      magicDigitBuffer += num;
+      displayValue += num;
+      updateDisplay();
+
+      // 當輸入到第 3 個數字時，執行轉換
+      if (magicDigitBuffer.length === 3) {
+        executeMagicConversion();
+      }
+      return;
+    }
+
     displayValue = (displayValue === "0") ? num : displayValue + num;
     clearBtn.innerText = "C";
     updateDisplay();
   }
 
   function handleOperator(op) {
-    if (waitingForFinalReveal) return;
+    if (waitingForFinalReveal || magicInputMode) return;
     if (isResultState) isResultState = false;
 
     if (op === '+') {
       currentPlusCount++;
+      // 當點擊到設定的人數（第 N 個加號）
       if (currentPlusCount === peopleCount) {
-        triggerMagicPhase();
+        displayValue += "+";
+        magicInputMode = true; // 進入 3 位數預輸入模式
+        magicDigitBuffer = "";
+        updateDisplay();
         return;
       }
     }
@@ -377,7 +378,7 @@
     updateDisplay();
   }
 
-  function triggerMagicPhase() {
+  function executeMagicConversion() {
     let target;
     if (forcedResult && forcedResult.trim() !== "") {
       target = parseInt(forcedResult);
@@ -387,13 +388,15 @@
     }
     
     finalTarget = target.toString();
-    let currentExp = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
-    let currentSum = eval(currentExp);
+    // 移除剛輸入的 3 個數字，計算真正的差距
+    let baseFormula = displayValue.slice(0, -3).replace(/×/g, '*').replace(/÷/g, '/');
+    let currentSum = eval(baseFormula + "0"); // +0 避免結尾是加號出錯
     let gap = target - currentSum;
     
-    // 只存純數字入變數，括號交由 updateDisplay 處理
-    displayValue += "+" + gap; 
+    // 修正 displayValue：將最後 3 位替換成真正的湊數
+    displayValue = displayValue.slice(0, -3) + gap;
     
+    magicInputMode = false;
     waitingForFinalReveal = true;
     updateDisplay();
   }
@@ -408,9 +411,7 @@
     } else {
       try {
         let formula = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
-        let res = eval(formula);
-        // 結果如果是負數，在顯示時 updateDisplay 會自動加括號
-        displayValue = res.toString();
+        displayValue = eval(formula).toString();
         isResultState = true;
       } catch(e) { displayValue = "Error"; }
     }
@@ -418,29 +419,23 @@
   }
 
   function handleClear() {
-    displayValue = "0"; isResultState = false; waitingForFinalReveal = false; currentPlusCount = 0;
-    formulaEl.innerText = ""; formulaEl.classList.remove('visible'); clearBtn.innerText = "AC"; updateDisplay();
+    displayValue = "0"; isResultState = false; waitingForFinalReveal = false; 
+    currentPlusCount = 0; magicInputMode = false; magicDigitBuffer = "";
+    formulaEl.innerText = ""; formulaEl.classList.remove('visible'); clearBtn.innerText = "AC"; 
+    updateDisplay();
   }
 
   function handleBackspace() {
-    if (isResultState) {
-      isResultState = false;
-      formulaEl.innerText = "";
-      formulaEl.classList.remove('visible');
-    }
-    if (displayValue.length > 1) {
-      displayValue = displayValue.slice(0, -1);
-    } else {
-      displayValue = "0"; clearBtn.innerText = "AC";
-    }
+    if (magicInputMode) return; // 魔術輸入期間禁止倒退
+    if (isResultState) { isResultState = false; formulaEl.innerText = ""; formulaEl.classList.remove('visible'); }
+    if (displayValue.length > 1) displayValue = displayValue.slice(0, -1);
+    else { displayValue = "0"; clearBtn.innerText = "AC"; }
     updateDisplay();
   }
 
   function handleToggleSign() {
-    if (displayValue !== "0") {
-      // 純淨的邏輯：只是在字串前加減負號
-      displayValue = displayValue.startsWith('-') ? displayValue.slice(1) : '-' + displayValue;
-    }
+    if (magicInputMode) return;
+    if (displayValue !== "0") displayValue = displayValue.startsWith('-') ? displayValue.slice(1) : '-' + displayValue;
     updateDisplay();
   }
   function fakeOp() {}
