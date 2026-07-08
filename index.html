@@ -47,7 +47,6 @@
     background-color: #616161; 
     color: #ffffff; 
     font-size: 32px;      /* 稍微調大一點 */
-    font-weight: 600;     /* 設定為粗體 */
     display: flex; 
     justify-content: center; 
     align-items: center; 
@@ -138,18 +137,35 @@
   
   <div class="buttons">
  <!-- DEL 按鈕：加入 btn-larger -->
-    <button class="btn-grey btn-larger" onclick="handleBackspace()">
-      <svg viewBox="0 0 24 24" style="width:35px; height:35px; stroke:white; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round;">
-        <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
-        <line x1="18" y1="9" x2="12" y2="15"></line>
-        <line x1="12" y1="9" x2="18" y2="15"></line>
-      </svg>
-    </button>
+ <button class="btn-grey" onclick="handleBackspace()">
+  <svg viewBox="0 0 24 24" style="width: 46px; height: 46px; fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round;">
+    <!-- 這是一個連續的閉合路徑，保證不會有多餘線條，且每個邊粗細完全一致 -->
+    <path d="M9 4 L2 12 L9 20 H20 A2 2 0 0 0 22 18 V6 A2 2 0 0 0 20 4 Z" stroke-width="2"/>
+    
+    <!-- 中間的 X -->
+   <!-- 原本是 18,9 到 13,14，現在改為 19,8 到 12,15 -->
+   <line x1="18" y1="8" x2="11" y2="15" stroke-width="2" stroke-linecap="round"/>
+   <line x1="11" y1="8" x2="18" y2="15" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>
     <!-- AC 按鈕：加入 btn-larger -->
     <button class="btn-grey btn-larger" id="btn-clear" onclick="handleClear()">AC</button>
     
     <!-- % 按鈕：加入 btn-larger -->
-    <button class="btn-grey btn-larger" onclick="fakeOp()">%</button>
+    <!-- % 按鈕：使用 SVG 繪製，粗細與其他符號保持一致 -->
+    <!-- % 按鈕：圓圈改為橢圓形線框，視覺上更像 0 -->
+    <button class="btn-grey" onclick="fakeOp()">
+      <svg viewBox="0 0 24 24" style="width: 40px; height: 40px; stroke: white; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;">
+        <!-- 上方 0：細長橢圓線框 (rx=1.8, ry=2.8) -->
+        <ellipse cx="6.5" cy="6.5" rx="2.2" ry="3.2" stroke="white" stroke-width="1.8"/>
+        
+        <!-- 下方 0：實心圓 (fill="white") -->
+        <ellipse cx="17.5" cy="17.5" rx="2.2" ry="3.2"  stroke="white" stroke-width="1.8"/>
+        
+        <!-- 中間斜線：調整位置讓它不貼著圓圈 -->
+        <line x1="18.5" y1="5.5" x2="5.5" y2="18.5" stroke="white" stroke-width="2.1" stroke-linecap="round"/>
+      </svg>
+    </button>
     <!-- 除號 (÷) - 放大並加粗 -->
 <!-- 除號 (÷) - 中間橫線加粗，上下兩點調瘦 -->
 <button class="btn-orange" onclick="handleOperator('÷')">
