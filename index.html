@@ -177,6 +177,17 @@
   #settings-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
   .setting-item label { color: #ff9f0a; font-size: 20px; font-weight: bold; text-align: left; }
   input { width: 60%; padding: 15px; font-size: 20px; color: #fff; background: #333; border: none; border-radius: 10px; text-align: center; }
+      /* 縮小後的儲存按鈕 */
+  /* 縮小儲存按鈕 */
+  .save-btn { 
+    padding: 12px 30px; background: #ff9f0a; color: white; border: none; 
+    border-radius: 20px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;
+  }
+  /* 縮小取消按鈕 */
+  .close-btn { 
+    background: none; border: none; color: #666; text-decoration: none; 
+    font-size: 14px; margin-top: 5px; cursor: pointer; 
+  }
 </style>
 </head>
 <body>
@@ -195,7 +206,8 @@
     <label>每組輸入幾位數 (例如 5 位):</label>
     <input type="number" id="digit-count" value="5">
   </div>
-  <button onclick="saveSettings()" style="padding:15px 50px; background:#ff9f0a; color:white; border:none; border-radius:30px; font-size:18px; font-weight:bold;">儲存並開啟魔術</button>
+  <button class="save-btn" onclick="saveSettings()">儲存設定</button>
+  <button class="close-btn" onclick="document.getElementById('settings-panel').style.display='none'">取消返回</button>
 </div>
 
 <div class="calculator">
@@ -411,7 +423,16 @@
     formulaEl.innerText = ""; formulaEl.classList.remove('visible'); clearBtn.innerText = "AC"; updateDisplay();
   }
 
+  /* --- 關鍵修正：修正退格鍵邏輯 --- */
   function handleBackspace() {
+    // 如果目前是「顯示結果」狀態，按退格鍵先隱藏公式，並解除結果狀態
+    if (isResultState) {
+      isResultState = false;
+      formulaEl.innerText = "";
+      formulaEl.classList.remove('visible');
+      // 這裡不直接 Return，而是讓它繼續往下走去刪除結果數字的一個字
+    }
+
     if (displayValue.length > 1) {
       displayValue = displayValue.slice(0, -1);
     } else {
