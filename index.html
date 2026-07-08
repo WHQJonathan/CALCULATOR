@@ -183,14 +183,14 @@
 <!-- 設定面板 -->
 <div id="settings-panel">
   <div class="setting-item">
-    <label>強制結果 (Force Result):</label>
-    <input type="number" id="force-val" placeholder="例如: 20240708">
+    <label>強制數字 (留空則用時間):</label>
+    <input type="text" id="forced-input" placeholder="例如: 888888">
   </div>
   <div class="setting-item">
-    <label>觀眾輸入組數 (Random Count):</label>
-    <input type="number" id="random-count" value="3" placeholder="例如: 3">
+    <label>觀眾組數 (幾個人輸入後補位):</label>
+    <input type="number" id="people-count" value="3" min="1">
   </div>
-  <button onclick="saveSettings()" style="padding:15px 40px; background:#ff9f0a; color:white; border:none; border-radius:25px; font-size:20px; font-weight:bold;">儲存並開啟魔術</button>
+  <button onclick="saveSettings()" style="padding:15px 20px; background:#ff9f0a; color:white; border:none; border-radius:25px; font-size:18px; font-weight:bold;">儲存設定</button>
 </div>
 
 <div class="calculator">
@@ -300,42 +300,38 @@
 
 <script>
   let displayValue = "0", isResultState = false, waitingForFinalReveal = false, finalTarget = "";
-  let forcedResult = null, randomCount = 3, currentCount = 0;
+  let forcedResult = null, peopleCount = 3, currentPlusCount = 0;
   
   const displayEl = document.getElementById('display'), formulaEl = document.getElementById('formula'), clearBtn = document.getElementById('btn-clear');
 
   function saveSettings() {
-    forcedResult = document.getElementById('force-val').value;
-    randomCount = parseInt(document.getElementById('random-count').value) || 3;
+    forcedResult = document.getElementById('forced-input').value;
+    peopleCount = parseInt(document.getElementById('people-count').value) || 3;
     handleClear();
     document.getElementById('settings-panel').style.display = 'none';
   }
 
-  function updateDisplay(override = null) {
-    let raw = override !== null ? override : displayValue;
+  function updateDisplay(overrideValue = null) {
+    let raw = overrideValue !== null ? overrideValue : displayValue;
     let formatted = raw.replace(/\d+/g, n => parseInt(n).toLocaleString());
-    
-    // 輸入過程中的負數括號美化
     if (raw.includes('+(-') || raw.startsWith('-')) {
         formatted = formatted.replace(/-(\d+,?\d*)/g, "($1)");
     }
-    
     displayEl.innerText = formatted;
-    
-    // 動態縮小字體邏輯
-    let len = displayEl.innerText.length;
-    if (len > 8) {
-        let size = Math.max(38, 70 - (len - 8) * 5);
-        displayEl.style.fontSize = size + "px";
+
+    let len = formatted.length;
+    if (len > 10) {
+      let newSize = Math.max(40, 70 - (len - 8) * 5);
+      displayEl.style.fontSize = newSize + "px";
     } else {
-        displayEl.style.fontSize = "70px";
+      displayEl.style.fontSize = "70px";
     }
     displayEl.scrollLeft = displayEl.scrollWidth;
   }
 
   function appendNumber(num) {
     if (waitingForFinalReveal) return;
-    if (isResultState) { handleClear(); }
+    if (isResultState) handleClear();
     displayValue = (displayValue === "0") ? num : displayValue + num;
     clearBtn.innerText = "C";
     updateDisplay();
@@ -345,15 +341,15 @@
     if (waitingForFinalReveal) return;
     if (isResultState) isResultState = false;
 
-    // 隨機組數邏輯偵測
     if (op === '+') {
-      currentCount++;
-      if (currentCount === randomCount && forcedResult) {
+      currentPlusCount++;
+      // 當點擊第 N 個加號時，觸發魔術
+      if (currentPlusCount === peopleCount) {
         triggerMagicPhase();
         return;
       }
     }
-    
+
     if (['+','-','×','÷'].includes(displayValue.slice(-1))) {
       displayValue = displayValue.slice(0, -1) + op;
     } else {
@@ -363,16 +359,26 @@
   }
 
   function triggerMagicPhase() {
-    let target = parseInt(forcedResult);
-    // 計算目前已輸入數字的總和
-    let currentFormula = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
-    let currentSum = eval(currentFormula);
+    // 邏輯核心：如果 forcedResult 是空的，就抓當下時間
+    let target;
+    if (forcedResult && forcedResult.trim() !== "") {
+      target = parseInt(forcedResult);
+    } else {
+      const now = new Date();
+      let mm = (now.getMonth() + 1).toString();
+      let dd = now.getDate().toString().padStart(2, '0');
+      let hh = now.getHours().toString().padStart(2, '0');
+      let min = now.getMinutes().toString().padStart(2, '0');
+      target = parseInt(`${mm}${dd}${hh}${min}`);
+    }
+    
+    finalTarget = target.toString();
+    let currentExpression = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
+    let currentSum = eval(currentExpression);
     let gap = target - currentSum;
     
-    // 將差距補上 (如果是負數自動加括號)
-    let gapStr = gap < 0 ? `+(-${Math.abs(gap)})` : `+${gap}`;
-    displayValue += gapStr;
-    
+    // 補上差距數字，自動處理負數括號
+    displayValue += gap < 0 ? `+(-${Math.abs(gap)})` : `+${gap}`;
     waitingForFinalReveal = true;
     updateDisplay();
   }
@@ -381,7 +387,7 @@
     if (waitingForFinalReveal) {
       formulaEl.innerText = displayEl.innerText;
       formulaEl.classList.add('visible');
-      displayValue = forcedResult.toString();
+      displayValue = finalTarget;
       waitingForFinalReveal = false;
       isResultState = true;
     } else {
@@ -396,7 +402,7 @@
   }
 
   function handleClear() {
-    displayValue = "0"; isResultState = false; waitingForFinalReveal = false; currentCount = 0;
+    displayValue = "0"; isResultState = false; waitingForFinalReveal = false; currentPlusCount = 0;
     formulaEl.innerText = ""; formulaEl.classList.remove('visible'); clearBtn.innerText = "AC"; updateDisplay();
   }
 
@@ -415,7 +421,6 @@
     }
     updateDisplay();
   }
-
   function fakeOp() {}
 </script>
 </body>
