@@ -62,39 +62,63 @@
   button { width: 100%; aspect-ratio: 1; border-radius: 50%; border: none; font-size: 34px; font-weight: 400; color: #fff; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; transition: filter 0.2s; margin: 0 auto; display: flex; justify-content: center; align-items: center; padding: 0; }
   button:active { filter: brightness(1.3); }
 
-  /* 果凍透明底盤 - 優化版 */
+  /* 頂部狀態列佈局 */
+  .status-bar {
+    position: absolute;
+    top: 0; left: 0; width: 100%;
+    padding: max(20px, env(safe-area-inset-top)) 20px 0 20px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+  }
+
+  /* 果凍感底盤：精確仿照圖片光澤 */
+  /* 頂部圖示底盤：對角線光澤果凍感 */
   .icon-wrapper {
-    width: 48px;
-    height: 48px;
+    position: relative;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     
-    /* 1. 極淡的背景色 */
-    background: rgba(255, 255, 255, 0.08); 
+    /* 基礎背景 (深灰黑) */
+    background: #151515; 
     
-    /* 2. 關鍵修正：極細且極淡的邊框 (0.5px 且 0.05 透明度) */
-    border: 0.5px solid rgba(255, 255, 255, 0.05); 
-    
-    /* 3. 毛玻璃效果 */
-    backdrop-filter: blur(12px); 
+    /* 毛玻璃效果 */
+    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    
-    /* 4. 使用陰影而非邊框來產生立體感 */
-    box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.02), 
-                0 4px 12px rgba(0, 0, 0, 0.25);
-    
+
+    /* 複合式多層陰影：達成左上與右下光澤 */
+    box-shadow: 
+      /* 1. 外部極細亮邊 (讓邊界清晰) */
+      0 0 0 0.5px rgba(255, 255, 255, 0.1),
+      
+      /* 2. 左上角內部高光 (強光) */
+      inset 0.5px 0.5px 1px rgba(255, 255, 255, 0.45),
+      
+      /* 3. 右下角內部反光 (次要弱光，增加透明度感) */
+      inset -0.5px -0.5px 2px rgba(255, 255, 255, 0.1),
+      
+      /* 4. 內部中心深度 (加強凹陷與立體感) */
+      inset 0 0 8px rgba(0, 0, 0, 0.5),
+      
+      /* 5. 底部外陰影 (浮空感) */
+      0 8px 15px rgba(0, 0, 0, 0.6);
+
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    padding: 8px;
     box-sizing: border-box;
-    transition: transform 0.2s;
+    transition: all 0.2s ease;
   }
- /* 點擊時的果凍回彈效果 */
- .icon-wrapper:active {
-  transform: scale(0.92);
-  background: rgba(255, 255, 255, 0.15);
-}
+
+  /* 按下時的縮小感 */
+  .icon-wrapper:active {
+    transform: scale(0.92);
+    box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.2);
+  }
   /* 灰色按鈕的基礎樣式 */
 .btn-grey { 
     background-color: #616161; 
