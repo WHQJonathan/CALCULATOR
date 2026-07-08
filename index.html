@@ -304,17 +304,52 @@
 </div>
 
 <script>
-  let displayValue = "0", isResultState = false, waitingForFinalReveal = false, finalTarget = "";
-  let forcedResult = null, peopleCount = 2, digitCountPerNum = 5, currentPlusCount = 0;
-  
-  const displayEl = document.getElementById('display'), formulaEl = document.getElementById('formula'), clearBtn = document.getElementById('btn-clear');
+  let displayValue = "0", isResultState = false, finalTarget = "", waitingForFinalReveal = false;
+  let forcedResult = null, digitCount = 6;
+  // 取得按鈕元件
+  const clearBtn = document.getElementById('btn-clear');
 
   function saveSettings() {
-    forcedResult = document.getElementById('forced-input').value;
-    peopleCount = parseInt(document.getElementById('people-count').value) || 2;
-    digitCountPerNum = parseInt(document.getElementById('digit-count').value) || 5;
-    handleClear();
+    forcedResult = document.getElementById('forced-input').value || null;
+    digitCount = parseInt(document.getElementById('digit-input').value) || 6;
     document.getElementById('settings-panel').style.display = 'none';
+  }
+
+  function appendNumber(num) {
+    if (waitingForFinalReveal) return;
+    if (isResultState) { displayValue = num; isResultState = false; formulaEl.innerText = ""; formulaEl.classList.remove('visible'); resetDisplayStyles(); }
+    else if (displayValue === "0") displayValue = num;
+    else {
+      // 根據動態設定的位數進行偵測
+      let reg = new RegExp(`^(\\d{${digitCount}})([+\\-])(\\d{${digitCount}})\\+(\\d{2})$`);
+      const match = displayValue.match(reg);
+      if (match) { triggerMagicPhase1(parseInt(match[1]), parseInt(match[3]), match[2]); return; }
+      displayValue += num;
+    }
+        // 【新增】只要有輸入數字，AC 變 C
+    clearBtn.innerText = "C"; 
+    updateDisplay();
+  }
+
+  function triggerMagicPhase() {
+    let target;
+    if (forcedResult && forcedResult.trim() !== "") {
+      target = parseInt(forcedResult);
+    } else {
+      const now = new Date();
+      target = parseInt(`${now.getMonth() + 1}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`);
+    }
+    
+    finalTarget = target.toString();
+    let currentExp = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
+    let currentSum = eval(currentExp);
+    let gap = target - currentSum;
+    
+    // 只存純數字入變數，括號交由 updateDisplay 處理
+    displayValue += "+" + gap; 
+    
+    waitingForFinalReveal = true;
+    updateDisplay();
   }
 
   // 為了節省空間，其他函式如 updateDisplay, handleEqual 等請沿用你原本的
@@ -342,98 +377,14 @@
       // 當字數超過 12 時，雖然不再縮小，但啟用滾動，並自動滾到最右邊顯示最新輸入
       displayEl.scrollLeft = displayEl.scrollWidth;
   }
-
-
- function appendNumber(num) {
-    if (waitingForFinalReveal) return;
-    if (isResultState) { displayValue = num; isResultState = false; formulaEl.innerText = ""; formulaEl.classList.remove('visible'); resetDisplayStyles(); }
-    else if (displayValue === "0") displayValue = num;
-    else {
-      // 根據動態設定的位數進行偵測
-      let reg = new RegExp(`^(\\d{${digitCount}})([+\\-])(\\d{${digitCount}})\\+(\\d{2})$`);
-      const match = displayValue.match(reg);
-      if (match) { triggerMagicPhase1(parseInt(match[1]), parseInt(match[3]), match[2]); return; }
-      displayValue += num;
-    }
-        // 【新增】只要有輸入數字，AC 變 C
-    clearBtn.innerText = "C"; 
-    updateDisplay();
-  }
-
-  function handleOperator(op) {
-    if (waitingForFinalReveal) return;
-    if (isResultState) isResultState = false;
-
-    if (op === '+') {
-      currentPlusCount++;
-      // 當點擊第 N 個加號時
-      if (currentPlusCount === peopleCount) {
-        triggerMagicPhase();
-        return;
-      }
-    }
-
-    if (['+','-','×','÷'].includes(displayValue.slice(-1))) {
-      displayValue = displayValue.slice(0, -1) + op;
-    } else {
-      displayValue += op;
-    }
-    updateDisplay();
-  }
-
-  function triggerMagicPhase() {
-    let target;
-    if (forcedResult && forcedResult.trim() !== "") {
-      target = parseInt(forcedResult);
-    } else {
-      const now = new Date();
-      target = parseInt(`${now.getMonth() + 1}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`);
-    }
-    
-    finalTarget = target.toString();
-    let currentExp = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
-    let currentSum = eval(currentExp);
-    let gap = target - currentSum;
-    
-    // 補上差距數字，自動處理負數括號
-    displayValue += gap < 0 ? `+(-${Math.abs(gap)})` : `+${gap}`;
-    waitingForFinalReveal = true;
-    updateDisplay();
-  }
-
-  function handleEqual() {
-    if (waitingForFinalReveal) {
-      formulaEl.innerText = displayEl.innerText;
-      formulaEl.classList.add('visible');
-      displayValue = finalTarget;
-      waitingForFinalReveal = false;
-      isResultState = true;
-    } else {
-      try {
-        let formula = displayValue.replace(/×/g, '*').replace(/÷/g, '/');
-        let res = eval(formula);
-        displayValue = res < 0 ? `- ( ${Math.abs(res)} )` : res.toString();
-        isResultState = true;
-      } catch(e) { displayValue = "Error"; }
-    }
-    updateDisplay();
-  }
-
-  function handleClear() {
-    displayValue = "0"; isResultState = false; waitingForFinalReveal = false; currentPlusCount = 0;
-    formulaEl.innerText = ""; formulaEl.classList.remove('visible'); clearBtn.innerText = "AC"; updateDisplay();
-  }
-
-  /* --- 關鍵修正：修正退格鍵邏輯 --- */
-  function handleBackspace() {
-    // 如果目前是「顯示結果」狀態，按退格鍵先隱藏公式，並解除結果狀態
+  function handleClear() { displayValue = "0"; isResultState = false; waitingForFinalReveal = false; formulaEl.innerText = "";     // 【新增】重置歸零時，C 變回 AC
+    clearBtn.innerText = "AC"; updateDisplay(); }
+ function handleBackspace() {
     if (isResultState) {
       isResultState = false;
       formulaEl.innerText = "";
       formulaEl.classList.remove('visible');
-      // 這裡不直接 Return，而是讓它繼續往下走去刪除結果數字的一個字
     }
-
     if (displayValue.length > 1) {
       displayValue = displayValue.slice(0, -1);
     } else {
@@ -441,14 +392,29 @@
     }
     updateDisplay();
   }
-
-  function handleToggleSign() {
-    if (displayValue !== "0") {
-      displayValue = displayValue.startsWith('-') ? displayValue.slice(1) : '-' + displayValue;
-    }
-    updateDisplay();
+  function fitFormulaText() {
+    formulaEl.style.fontSize = "26px"; // 固定一個清晰的字體
+    formulaEl.style.whiteSpace = "nowrap";
+    formulaEl.style.overflowX = "auto"; // 超過寬度時允許拖動查看
+    formulaEl.style.display = "block";
+    formulaEl.scrollLeft = formulaEl.scrollWidth; // 強制滾動到最右邊
+  }
+  function handleOperator(op) { displayValue += op; updateDisplay(); }
+  function handleToggleSign() { displayValue = (parseFloat(displayValue)*-1).toString(); updateDisplay(); }
+  function handleEqual() { 
+      if(waitingForFinalReveal) 
+      { formulaEl.innerText = displayValue; 
+        formulaEl.classList.add('visible'); 
+        // 這裡強制讓它塞滿寬度，不進行縮小
+        fitFormulaText(); 
+        displayValue = finalTarget; 
+        waitingForFinalReveal = false; 
+        isResultState = true; 
+        updateDisplay(); }
+      else try { displayValue = eval(displayValue.replace(/×/g,'*').replace(/÷/g,'/')).toString(); isResultState = true; updateDisplay(); } catch(e) { displayValue = "Error"; updateDisplay(); }
   }
   function fakeOp() {}
+  const displayEl = document.getElementById('display'), formulaEl = document.getElementById('formula'), resetDisplayStyles = () => displayEl.classList.remove('small-result');
 </script>
 </body>
 </html>
