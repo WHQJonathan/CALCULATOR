@@ -425,11 +425,39 @@
     updateDisplay();
   }
 
-  function handleBackspace() {
-    if (magicInputMode) return; // 魔術輸入期間禁止倒退
-    if (isResultState) { isResultState = false; formulaEl.innerText = ""; formulaEl.classList.remove('visible'); }
-    if (displayValue.length > 1) displayValue = displayValue.slice(0, -1);
-    else { displayValue = "0"; formulaEl.classList.remove('visible'); clearBtn.innerText = "AC"; }
+ function handleBackspace() {
+    // 1. 如果是在顯示結果狀態，先清除公式區
+    if (isResultState) {
+      isResultState = false;
+      formulaEl.innerText = "";
+      formulaEl.classList.remove('visible');
+    }
+
+    // 2. 如果處於魔術輸入模式 (正在輸入那 3 個隨機數)
+    if (magicInputMode) {
+      if (magicDigitBuffer.length > 0) {
+        // 刪除緩衝區的最後一個字，同時刪除顯示字串的最後一個字
+        magicDigitBuffer = magicDigitBuffer.slice(0, -1);
+        displayValue = displayValue.slice(0, -1);
+      } else {
+        // 如果緩衝區已經空了，代表使用者刪到了那個魔術觸發的 "+" 號
+        magicInputMode = false;      // 關閉魔術模式
+        currentPlusCount--;         // 補位計數回退，讓下次按 + 能重新觸發
+        displayValue = displayValue.slice(0, -1); 
+      }
+    } 
+    // 3. 一般輸入模式
+    else {
+      if (displayValue.length > 1) {
+        displayValue = displayValue.slice(0, -1);
+      } else {
+        displayValue = "0";
+        clearBtn.innerText = "AC";
+        handleClear()
+      }
+    }
+
+    // 4. 更新畫面
     updateDisplay();
   }
 
