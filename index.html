@@ -429,7 +429,7 @@
     if (magicInputMode) return; // 魔術輸入期間禁止倒退
     if (isResultState) { isResultState = false; formulaEl.innerText = ""; formulaEl.classList.remove('visible'); }
     if (displayValue.length > 1) displayValue = displayValue.slice(0, -1);
-    else { displayValue = "0"; clearBtn.innerText = "AC"; }
+    else { displayValue = "0"; formulaEl.classList.remove('visible'); clearBtn.innerText = "AC"; }
     updateDisplay();
   }
 
