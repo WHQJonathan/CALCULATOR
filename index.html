@@ -330,30 +330,31 @@
     document.getElementById('settings-panel').style.display = 'none';
   }
 
-  // 為了節省空間，其他函式如 updateDisplay, handleEqual 等請沿用你原本的
+  // --- 顯示核心：精準處理負數與括號 ---
   function updateDisplay(overrideValue = null) {
-    let raw = overrideValue !== null ? overrideValue : displayValue;
+    let raw = (overrideValue !== null ? overrideValue : displayValue).toString();
     
-    // 1. 格式化數字
-    let formatted = raw.replace(/\d+/g, n => parseInt(n).toLocaleString());
-    if (raw.startsWith('-') && !isNaN(raw.slice(1))) {
-      formatted = "(" + raw + ")";
+    // 1. 移除舊有的 UI 顯示用括號，只保留計算用的數字與符號
+    let cleanRaw = raw.replace(/[()]/g, '');
+
+    // 2. 千分位格式化
+    let formatted = cleanRaw.replace(/\d+/g, n => parseInt(n).toLocaleString());
+    
+    // 3. 重要：負數括號化
+    // 情境 A: 運算符後接著負數 (例如 1,000+-500 -> 1,000+(-500))
+    formatted = formatted.replace(/([+\-×÷])(-[\d,.]+)/g, "$1($2)");
+    
+    // 情境 B: 整個字串開頭就是負數 (例如 (-500))
+    if (formatted.startsWith('-')) {
+        formatted = "(" + formatted + ")";
     }
     
     displayEl.innerText = formatted;
 
-    // 2. 動態字體縮小邏輯
-    // 預設 70px，超過 7 個數字開始縮小，直到 12 個數字
-    let length = formatted.length;
-    if (length > 10) {
-      // 計算縮放比例：若 length=12，fontSize 大約為 40px
-      let newSize = Math.max(60, 70 - (length - 7) * 6);
-      displayEl.style.fontSize = newSize + "px";
-    } else {
-      displayEl.style.fontSize = "70px";
-    }
-      // 當字數超過 12 時，雖然不再縮小，但啟用滾動，並自動滾到最右邊顯示最新輸入
-      displayEl.scrollLeft = displayEl.scrollWidth;
+    // 字體縮放與滾動
+    let digitLen = cleanRaw.replace(/[^0-9-]/g, '').length;
+    displayEl.style.fontSize = digitLen >= 9 ? "52px" : "70px";
+    displayEl.scrollLeft = displayEl.scrollWidth;
   }
 
   function appendNumber(num) {
