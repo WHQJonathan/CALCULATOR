@@ -25,23 +25,17 @@
     align-items: flex-end;
     justify-content: flex-end;
     width: 100%;
-    padding-right: 20px; /* 增加右側內邊距，防止被切斷 */
+    padding-right: 2px; /* 增加右側內邊距，防止被切斷 */
     box-sizing: border-box;
   }
-  /* 公式區 (上半部灰字) */
-  .formula-display {
-    color: #a5a5a5;
-    font-size: 24px; 
-    white-space: nowrap;
-    width: 100%;
-    text-align: right;
-    overflow-x: auto; /* 超出時出現滾動條 */
-    overflow-y: hidden;
-    scrollbar-width: none; /* 隱藏滾動條 */
-    height: 40px;
-    margin-bottom: 5px;
+  /* 關鍵修正：公式顯示區 */
+  .formula-display { 
+    color: #a5a5a5; font-size: 26px; font-weight: 400; white-space: nowrap; height: 40px; line-height: 40px; margin-bottom: -10px; width: 100%; text-align: right; 
+    overflow-x: auto; scrollbar-width: none; opacity: 0; transition: opacity 0.3s; padding: 0; box-sizing: border-box;
   }
+  .formula-display.visible { opacity: 1; }
   .formula-display::-webkit-scrollbar { display: none; }
+
   .display {
       color: #fff;
       font-size: 70px; /* 預設大小 */
@@ -263,6 +257,7 @@
 </button>
     <!-- 除號 (÷) - 放大並加粗 -->
 <!-- 除號 (÷) - 中間橫線加粗，上下兩點調瘦 -->
+<!-- 除號 (÷) - 中間橫線加粗，上下兩點調瘦 -->
 <button class="btn-orange" onclick="handleOperator('÷')">
   <svg viewBox="0 0 24 24">
     <!-- 中間橫線保持粗度 -->
@@ -317,23 +312,43 @@
     document.getElementById('settings-panel').style.display = 'none';
   }
 
+  // 為了節省空間，其他函式如 updateDisplay, handleEqual 等請沿用你原本的
   function updateDisplay(overrideValue = null) {
     let raw = overrideValue !== null ? overrideValue : displayValue;
-    let cleanRaw = raw.toString().replace(/[()]/g, '');
-    let formatted = cleanRaw.replace(/\d+/g, n => parseInt(n).toLocaleString());
-    formatted = formatted.replace(/([+\-×÷])(-[\d,.]+)/g, "$1($2)");
-    if (formatted.startsWith('-')) formatted = "(" + formatted + ")";
+    
+    // 1. 格式化數字
+    let formatted = raw.replace(/\d+/g, n => parseInt(n).toLocaleString());
+    if (raw.startsWith('-') && !isNaN(raw.slice(1))) {
+      formatted = "(" + raw + ")";
+    }
     
     displayEl.innerText = formatted;
 
-    let len = formatted.length;
-    if (len > 10) { displayEl.style.fontSize = Math.max(35, 70 - (len - 8) * 5) + "px"; }
-    else { displayEl.style.fontSize = "70px"; }
-    displayEl.scrollLeft = displayEl.scrollWidth;
+    // 2. 動態字體縮小邏輯
+    // 預設 70px，超過 7 個數字開始縮小，直到 12 個數字
+    let length = formatted.length;
+    if (length > 10) {
+      // 計算縮放比例：若 length=12，fontSize 大約為 40px
+      let newSize = Math.max(60, 70 - (length - 7) * 6);
+      displayEl.style.fontSize = newSize + "px";
+    } else {
+      displayEl.style.fontSize = "70px";
+    }
+      // 當字數超過 12 時，雖然不再縮小，但啟用滾動，並自動滾到最右邊顯示最新輸入
+      displayEl.scrollLeft = displayEl.scrollWidth;
   }
 
   function appendNumber(num) {
+
+      // 修正：計算結果出爐後，按數字鍵應「延續」結果而非清空 (配合 Backspace 的解鎖概念)
     if (waitingForFinalReveal) return;
+    if (isResultState) {
+        isResultState = false;
+        formulaEl.innerText = "";
+        formulaEl.classList.remove('visible');
+    }
+  
+    
     if (isResultState) handleClear();
 
     // 魔術邏輯：如果進入了補位輸入模式
@@ -343,7 +358,7 @@
       updateDisplay();
 
       // 當輸入到第 3 個數字時，執行轉換
-      if (magicDigitBuffer.length === 3) {
+      if (magicDigitBuffer.length === 4) {
         executeMagicConversion();
       }
       return;
@@ -389,12 +404,12 @@
     
     finalTarget = target.toString();
     // 移除剛輸入的 3 個數字，計算真正的差距
-    let baseFormula = displayValue.slice(0, -3).replace(/×/g, '*').replace(/÷/g, '/');
+    let baseFormula = displayValue.slice(0, -4).replace(/×/g, '*').replace(/÷/g, '/');
     let currentSum = eval(baseFormula + "0"); // +0 避免結尾是加號出錯
     let gap = target - currentSum;
     
     // 修正 displayValue：將最後 3 位替換成真正的湊數
-    displayValue = displayValue.slice(0, -3) + gap;
+    displayValue = displayValue.slice(0, -4) + gap;
     
     magicInputMode = false;
     waitingForFinalReveal = true;
@@ -425,39 +440,45 @@
     updateDisplay();
   }
 
- function handleBackspace() {
-    // 1. 如果是在顯示結果狀態，先清除公式區
+  function handleBackspace() {
+    // 狀態 1：如果是結果顯示後
     if (isResultState) {
       isResultState = false;
       formulaEl.innerText = "";
       formulaEl.classList.remove('visible');
+      // 這裡不 return，讓它繼續執行後面的刪除
     }
 
-    // 2. 如果處於魔術輸入模式 (正在輸入那 3 個隨機數)
+    // 狀態 2：如果是魔術觸發後（鎖定中）
+    if (waitingForFinalReveal) {
+      // 撤銷湊數，回到魔術輸入模式
+      displayValue = displayValue.slice(0, -lastMagicGapLength);
+      magicInputMode = true;
+      magicDigitBuffer = ""; // 清空緩衝，讓使用者重打 3 位
+      waitingForFinalReveal = false;
+      updateDisplay();
+      return;
+    }
+
+    // 狀態 3：魔術輸入中
     if (magicInputMode) {
       if (magicDigitBuffer.length > 0) {
-        // 刪除緩衝區的最後一個字，同時刪除顯示字串的最後一個字
         magicDigitBuffer = magicDigitBuffer.slice(0, -1);
         displayValue = displayValue.slice(0, -1);
       } else {
-        // 如果緩衝區已經空了，代表使用者刪到了那個魔術觸發的 "+" 號
-        magicInputMode = false;      // 關閉魔術模式
-        currentPlusCount--;         // 補位計數回退，讓下次按 + 能重新觸發
-        displayValue = displayValue.slice(0, -1); 
+        magicInputMode = false;
+        currentPlusCount--;
+        displayValue = displayValue.slice(0, -1);
       }
     } 
-    // 3. 一般輸入模式
+    // 狀態 4：一般輸入
     else {
       if (displayValue.length > 1) {
         displayValue = displayValue.slice(0, -1);
       } else {
-        displayValue = "0";
-        clearBtn.innerText = "AC";
-        handleClear();
+        displayValue = "0"; clearBtn.innerText = "AC";
       }
     }
-
-    // 4. 更新畫面
     updateDisplay();
   }
 
