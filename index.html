@@ -347,7 +347,7 @@
     let length = formatted.length;
     if (length > 10) {
       // 計算縮放比例：若 length=12，fontSize 大約為 40px
-      let newSize = Math.max(66, 70 - (length - 7) * 6);
+      let newSize = Math.max(64, 70 - (length - 7) * 6);
       displayEl.style.fontSize = newSize + "px";
     } else {
       displayEl.style.fontSize = "70px";
