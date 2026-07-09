@@ -28,10 +28,12 @@
     padding-right: 2px; /* 增加右側內邊距，防止被切斷 */
     box-sizing: border-box;
   }
-  /* 關鍵修正：公式顯示區 */
+  /* 修正：歷史資料區 width 100% 且不留 padding */
   .formula-display { 
-    color: #a5a5a5; font-size: 26px; font-weight: 400; white-space: nowrap; height: 40px; line-height: 40px; margin-bottom: -10px; width: 100%; text-align: right; 
-    overflow-x: auto; scrollbar-width: none; opacity: 0; transition: opacity 0.3s; padding: 0; box-sizing: border-box;
+    color: #a5a5a5; font-size: 26px; font-weight: 400; white-space: nowrap; 
+    height: 48px; line-height: 40px; margin-bottom: -10px; 
+    width: 100%; text-align: right; overflow-x: auto; scrollbar-width: none; 
+    opacity: 0; transition: opacity 0.3s; padding: 0; box-sizing: border-box;
   }
   .formula-display.visible { opacity: 1; }
   .formula-display::-webkit-scrollbar { display: none; }
