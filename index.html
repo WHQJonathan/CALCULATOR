@@ -333,9 +333,14 @@
   // 為了節省空間，其他函式如 updateDisplay, handleEqual 等請沿用你原本的
   function updateDisplay(overrideValue = null) {
     let raw = overrideValue !== null ? overrideValue : displayValue;
+      // 1. 格式化數字
+    let formatted = raw.replace(/\d+/g, n => parseInt(n).toLocaleString());
+    let cleanRaw = raw.toString().replace(/[()]/g, '');
+    formatted = formatted.replace(/([+\-×÷])(-[\d,.]+)/g, "$1($2)");
+    if (formatted.startsWith('-')) formatted = "(" + formatted + ")";
+    
     
     // 1. 格式化數字
-    let formatted = raw.replace(/\d+/g, n => parseInt(n).toLocaleString());
     if (raw.startsWith('-') && !isNaN(raw.slice(1))) {
       formatted = "(" + raw + ")";
     }
